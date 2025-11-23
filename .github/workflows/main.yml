@@ -1,4 +1,4 @@
-name: Deploy Docker Hub image to Heroku
+name: Build & Deploy Docker image to Heroku
 
 on:
   push:
@@ -11,10 +11,10 @@ jobs:
     env:
       HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      DOCKER_IMAGE: eb53/ana680-final-docker:amd64
+      DOCKER_IMAGE: eb53/ana680_final-docker:amd64
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Pull image from Docker Hub
@@ -25,7 +25,8 @@ jobs:
 
       - name: Login to Heroku Container Registry
         run: |
-          echo "$HEROKU_API_KEY" | docker login --username=_ --password-stdin registry.heroku.com
+          echo "$HEROKU_API_KEY" \
+            | docker login --username=_ --password-stdin registry.heroku.com
 
       - name: Push image to Heroku Container Registry
         run: docker push registry.heroku.com/$HEROKU_APP_NAME/web
@@ -34,6 +35,8 @@ jobs:
         run: |
           curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 
-      - name: Release app on Heroku
-        run: heroku container:release web --app $HEROKU_APP_NAME
+      - name: Set Heroku stack to container
+        run: heroku stack:set container --app "$HEROKU_APP_NAME" --confirm "$HEROKU_APP_NAME"
 
+      - name: Release app on Heroku
+        run: heroku container:release web --app "$HEROKU_APP_NAME"
