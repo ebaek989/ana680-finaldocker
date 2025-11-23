@@ -1,4 +1,4 @@
-name: Build & Deploy Docker image to Heroku
+name: Deploy Docker Image to Heroku
 
 on:
   push:
@@ -11,11 +11,18 @@ jobs:
     env:
       HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      DOCKER_IMAGE: eb53/ana680-final-docker:amd64
+      DOCKER_IMAGE: eb53/ana680-final-docker
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
+
+      # Only needed for private Docker Hub repos
+      - name: Login to Docker Hub
+        if: ${{ secrets.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN }}
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" |
+            docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Pull image from Docker Hub
         run: docker pull $DOCKER_IMAGE
@@ -25,18 +32,19 @@ jobs:
 
       - name: Login to Heroku Container Registry
         run: |
-          echo "$HEROKU_API_KEY" \
-            | docker login --username=_ --password-stdin registry.heroku.com
+          echo "$HEROKU_API_KEY" |
+            docker login --username=_ --password-stdin registry.heroku.com
 
-      - name: Push image to Heroku Container Registry
+      - name: Push to Heroku Container Registry
         run: docker push registry.heroku.com/$HEROKU_APP_NAME/web
 
       - name: Install Heroku CLI
-        run: |
-          curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+        run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 
+      # FIXED: removed the invalid "--confirm" flag
       - name: Set Heroku stack to container
-        run: heroku stack:set container --app "$HEROKU_APP_NAME" --confirm "$HEROKU_APP_NAME"
+        run: heroku stack:set container --app "$HEROKU_APP_NAME"
 
-      - name: Release app on Heroku
+      - name: Release to Heroku
         run: heroku container:release web --app "$HEROKU_APP_NAME"
+
