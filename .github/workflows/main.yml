@@ -11,7 +11,7 @@ jobs:
     env:
       HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      DOCKER_IMAGE: eeb53/ana680-final-docker
+      DOCKER_IMAGE: eeb53/ana680-final-docker:amd64
 
     steps:
       - name: Checkout code
