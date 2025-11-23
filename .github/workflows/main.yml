@@ -17,13 +17,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Only needed for private Docker Hub repos
-      - name: Login to Docker Hub
-        if: ${{ secrets.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN }}
-        run: |
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" |
-            docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
       - name: Pull image from Docker Hub
         run: docker pull $DOCKER_IMAGE
 
@@ -41,7 +34,6 @@ jobs:
       - name: Install Heroku CLI
         run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 
-      # FIXED: removed the invalid "--confirm" flag
       - name: Set Heroku stack to container
         run: heroku stack:set container --app "$HEROKU_APP_NAME"
 
